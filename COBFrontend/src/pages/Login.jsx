@@ -13,7 +13,8 @@ const Login = () => {
     e.preventDefault();
     setError('');
     try {
-      const res = await axios.post('http://localhost:5001/api/auth/login', { username, password });
+  const API = import.meta.env.VITE_API_BASE_URL;
+  const res = await axios.post(`${API}/auth/login`, { username, password });
       setToken(res.data.token);
       navigate('/admin');
     } catch (err) {

@@ -27,7 +27,8 @@ const Admin = () => {
     e.preventDefault();
     const durationText = calculateDuration(startTime, endTime);
     try {
-      await axios.post('http://localhost:5001/api/cobs', { date, startTime, endTime, durationText }, {
+  const API = import.meta.env.VITE_API_BASE_URL;
+  await axios.post(`${API}/cobs`, { date, startTime, endTime, durationText }, {
         headers: { Authorization: `Bearer ${getToken()}` }
       });
       setMessage('Added successfully!');
