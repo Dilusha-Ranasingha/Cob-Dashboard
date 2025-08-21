@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area, BarChart, Bar } from 'recharts';
 
 const Dashboard = () => {
   const [cobs, setCobs] = useState([]);
@@ -127,6 +127,19 @@ const Dashboard = () => {
                 <Tooltip />
                 <Area type="monotone" dataKey="durationHours" stroke="#ff7300" fill="#ff7300" />
               </AreaChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="bg-white p-4 shadow mt-4">
+            <h2 className="text-lg font-bold bg-red-600 text-white p-2">COB Duration (Bar)</h2>
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="durationHours" fill="#3182ce" name="Duration (hrs)" />
+              </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
