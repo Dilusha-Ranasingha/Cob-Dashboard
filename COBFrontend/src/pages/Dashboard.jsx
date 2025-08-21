@@ -204,7 +204,7 @@ const Dashboard = () => {
               <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
             </div>
 
-            <div className="bg-gray-900/50 rounded-xl border border-gray-700/50 max-h-[500px] overflow-auto">
+            <div className="bg-gray-900/50 rounded-xl border border-gray-700/50 max-h-[1200px] overflow-auto">
               <table className="w-full">
                 <thead className="sticky top-0 bg-gray-800/80 backdrop-blur-sm">
                   <tr>

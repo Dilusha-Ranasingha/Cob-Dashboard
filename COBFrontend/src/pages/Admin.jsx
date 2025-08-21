@@ -50,17 +50,17 @@ const Admin = () => {
     const durationText = calculateDuration(startTime, endTime)
     try {
       const API = import.meta.env.VITE_API_BASE_URL
-  await axios.post(
+      await axios.post(
         `${API}/cobs`,
         { date, startTime, endTime, durationText },
         {
           headers: { Authorization: `Bearer ${getToken()}` },
         },
       )
-  // Refresh table immediately to show the new record without a manual reload
-  await fetchCobs()
-  // Notify other open pages (Dashboard) to refresh
-  notifyCobChange()
+      // Refresh table immediately to show the new record without a manual reload
+      await fetchCobs()
+      // Notify other open pages (Dashboard) to refresh
+      notifyCobChange()
       setMessage("Added successfully!")
       setDate("")
       setStartTime("")
@@ -109,13 +109,13 @@ const Admin = () => {
           headers: { Authorization: `Bearer ${getToken()}` },
         },
       )
-      setMessage("Updated successfully!")
-      cancelEdit()
-      fetchCobs()
-  notifyCobChange()
-    } catch (e) {
-      setMessage("Error updating entry")
-    }
+    setMessage("Updated successfully!")
+    cancelEdit()
+    fetchCobs()
+    notifyCobChange()
+  } catch (e) {
+    setMessage("Error updating entry")
+  }
   }
 
   const deleteRow = async (id) => {
@@ -124,12 +124,12 @@ const Admin = () => {
       await axios.delete(`${API}/cobs/${id}`, {
         headers: { Authorization: `Bearer ${getToken()}` },
       })
-      setMessage("Deleted successfully!")
-      fetchCobs()
-  notifyCobChange()
-    } catch (e) {
-      setMessage("Error deleting entry")
-    }
+    setMessage("Deleted successfully!")
+    fetchCobs()
+    notifyCobChange()
+  } catch (e) {
+    setMessage("Error deleting entry")
+  }
   }
 
   return (
