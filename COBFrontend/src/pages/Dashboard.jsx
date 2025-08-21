@@ -14,7 +14,7 @@ const Dashboard = () => {
 
   const fetchCobs = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/cobs');
+      const res = await axios.get('http://localhost:5001/api/cobs');
       const sorted = res.data.sort((a, b) => parseDate(a.date) - parseDate(b.date));
       setCobs(sorted);
       setFilteredCobs(sorted);

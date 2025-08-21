@@ -23,7 +23,7 @@ const Admin = () => {
     e.preventDefault();
     const durationText = calculateDuration(startTime, endTime);
     try {
-      await axios.post('http://localhost:5000/api/cobs', { date, startTime, endTime, durationText });
+      await axios.post('http://localhost:5001/api/cobs', { date, startTime, endTime, durationText });
       setMessage('Added successfully!');
       setDate('');
       setStartTime('');
