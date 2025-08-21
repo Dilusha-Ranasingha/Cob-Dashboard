@@ -28,6 +28,41 @@ const Dashboard = () => {
     fetchCobs()
   }, [])
 
+  // Real-time updates: listen for updates broadcast from Admin and re-fetch
+  useEffect(() => {
+    let channel
+    const onUpdate = () => {
+      fetchCobs()
+    }
+    try {
+      channel = new BroadcastChannel("cob-updates")
+      channel.onmessage = (e) => {
+        if (e?.data?.type === "COB_UPDATED") onUpdate()
+      }
+    } catch (_) {
+      // BroadcastChannel not supported; ignore
+    }
+
+    const storageListener = (e) => {
+      if (e.key === "COB_UPDATED") onUpdate()
+    }
+    window.addEventListener("storage", storageListener)
+
+    // Optional gentle polling fallback (e.g., single-tab use); 60s interval
+    const interval = setInterval(() => {
+      // Only poll if page is visible to reduce unnecessary calls
+      if (document.visibilityState === "visible") fetchCobs()
+    }, 60000)
+
+    return () => {
+      try {
+        channel && channel.close()
+      } catch (_) {}
+      window.removeEventListener("storage", storageListener)
+      clearInterval(interval)
+    }
+  }, [])
+
   const fetchCobs = async () => {
     try {
       setLoading(true)

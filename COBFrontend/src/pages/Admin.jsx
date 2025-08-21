@@ -27,18 +27,40 @@ const Admin = () => {
   const [cobs, setCobs] = useState([])
   const [editingId, setEditingId] = useState(null)
 
+  // Notify other tabs/pages (e.g., Dashboard) to refresh when data changes
+  const notifyCobChange = () => {
+    try {
+      const channel = new BroadcastChannel("cob-updates")
+      channel.postMessage({ type: "COB_UPDATED", at: Date.now() })
+      channel.close()
+    } catch (_) {
+      // BroadcastChannel may not be supported; fall back to storage events
+    }
+    try {
+      localStorage.setItem("COB_UPDATED", String(Date.now()))
+      // Optional cleanup to avoid clutter; keep event for listeners
+      // setTimeout(() => localStorage.removeItem("COB_UPDATED"), 0)
+    } catch (_) {
+      // Ignore storage errors (e.g., private mode)
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     const durationText = calculateDuration(startTime, endTime)
     try {
       const API = import.meta.env.VITE_API_BASE_URL
-      await axios.post(
+  await axios.post(
         `${API}/cobs`,
         { date, startTime, endTime, durationText },
         {
           headers: { Authorization: `Bearer ${getToken()}` },
         },
       )
+  // Refresh table immediately to show the new record without a manual reload
+  await fetchCobs()
+  // Notify other open pages (Dashboard) to refresh
+  notifyCobChange()
       setMessage("Added successfully!")
       setDate("")
       setStartTime("")
@@ -90,6 +112,7 @@ const Admin = () => {
       setMessage("Updated successfully!")
       cancelEdit()
       fetchCobs()
+  notifyCobChange()
     } catch (e) {
       setMessage("Error updating entry")
     }
@@ -103,6 +126,7 @@ const Admin = () => {
       })
       setMessage("Deleted successfully!")
       fetchCobs()
+  notifyCobChange()
     } catch (e) {
       setMessage("Error deleting entry")
     }
