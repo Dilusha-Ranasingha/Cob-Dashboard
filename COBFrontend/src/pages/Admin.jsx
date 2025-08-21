@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
+import { getToken, clearToken } from '../auth';
+import { useNavigate } from 'react-router-dom';
 
 const Admin = () => {
   const [date, setDate] = useState('');
@@ -19,11 +21,15 @@ const Admin = () => {
     return `${hours}h ${mins}m`;
   };
 
+  const navigate = useNavigate();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const durationText = calculateDuration(startTime, endTime);
     try {
-      await axios.post('http://localhost:5001/api/cobs', { date, startTime, endTime, durationText });
+      await axios.post('http://localhost:5001/api/cobs', { date, startTime, endTime, durationText }, {
+        headers: { Authorization: `Bearer ${getToken()}` }
+      });
       setMessage('Added successfully!');
       setDate('');
       setStartTime('');
@@ -52,7 +58,10 @@ const Admin = () => {
         <button type="submit" className="bg-blue-500 text-white p-2 w-full">Add Entry</button>
         {message && <p className="mt-2 text-center">{message}</p>}
       </form>
-      <a href="/" className="block text-center mt-4 text-blue-500">Back to Dashboard</a>
+      <div className="flex justify-center gap-4 mt-4">
+        <a href="/" className="text-blue-500">Back to Dashboard</a>
+        <button className="text-red-600" onClick={() => { clearToken(); navigate('/login'); }}>Logout</button>
+      </div>
     </div>
   );
 };

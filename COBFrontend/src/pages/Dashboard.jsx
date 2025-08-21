@@ -157,7 +157,7 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-      <a href="/admin" className="block text-center mt-4 text-blue-500">Go to Admin</a>
+  <a href="/login" className="block text-center mt-4 text-blue-500">Go to Admin</a>
     </div>
   );
 };
