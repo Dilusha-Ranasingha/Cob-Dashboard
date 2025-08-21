@@ -43,7 +43,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     filterData();
-  }, [fromDate, toDate]);
+  }, [fromDate, toDate, cobs]);
 
   const getChartData = () => {
     return filteredCobs.map(cob => {
