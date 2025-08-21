@@ -142,6 +142,19 @@ const Dashboard = () => {
               </BarChart>
             </ResponsiveContainer>
           </div>
+          <div className="bg-white p-4 shadow mt-4">
+            <h2 className="text-lg font-bold bg-red-600 text-white p-2">COB Duration (Line)</h2>
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line type="linear" dataKey="durationHours" stroke="#16a34a" name="Duration (hrs)" dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
       <a href="/admin" className="block text-center mt-4 text-blue-500">Go to Admin</a>
