@@ -15,6 +15,7 @@ import {
   Area,
   BarChart,
   Bar,
+  Brush,
 } from "recharts"
 
 const Dashboard = () => {
@@ -23,6 +24,8 @@ const Dashboard = () => {
   const [fromDate, setFromDate] = useState("")
   const [toDate, setToDate] = useState("")
   const [loading, setLoading] = useState(true)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedChart, setSelectedChart] = useState(null) // 'startEnd' | 'durationTrend' | 'durationBars' | 'durationLine'
 
   useEffect(() => {
     fetchCobs()
@@ -115,6 +118,30 @@ const Dashboard = () => {
     return h + m / 60
   }
 
+  const hoursToTime = (h) => {
+    if (typeof h !== "number" || Number.isNaN(h)) return "--:--"
+    const normalized = ((h % 24) + 24) % 24
+    const hours = Math.floor(normalized)
+    const minutes = Math.round((normalized - hours) * 60)
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`
+  }
+
+  const openChart = (type) => {
+    setSelectedChart(type)
+    setIsModalOpen(true)
+  }
+
+  const closeModal = () => setIsModalOpen(false)
+
+  useEffect(() => {
+    if (!isModalOpen) return
+    const onKey = (e) => {
+      if (e.key === "Escape") closeModal()
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [isModalOpen])
+
   const latestCob = filteredCobs[filteredCobs.length - 1] || {}
   const chartData = getChartData()
 
@@ -125,6 +152,14 @@ const Dashboard = () => {
       : 0
   const maxDuration = chartData.length > 0 ? Math.max(...chartData.map((item) => item.durationHours)).toFixed(2) : 0
   const minDuration = chartData.length > 0 ? Math.min(...chartData.map((item) => item.durationHours)).toFixed(2) : 0
+  const rangeLabel = fromDate || toDate ? `${fromDate || "…"} → ${toDate || "…"}` : "All dates"
+
+  const startHoursArr = chartData.map((d) => d.startHours)
+  const endHoursArr = chartData.map((d) => d.endHours % 24)
+  const avgStart = startHoursArr.length ? (startHoursArr.reduce((a, b) => a + b, 0) / startHoursArr.length) : null
+  const avgEnd = endHoursArr.length ? (endHoursArr.reduce((a, b) => a + b, 0) / endHoursArr.length) : null
+  const earliestStart = startHoursArr.length ? Math.min(...startHoursArr) : null
+  const latestEnd = endHoursArr.length ? Math.max(...endHoursArr) : null
 
   if (loading) {
     return (
@@ -138,6 +173,7 @@ const Dashboard = () => {
   }
 
   return (
+    <>
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 p-6">
       <div className="mb-8 animate-fade-in">
         <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-cyan-400 text-center mb-2">
@@ -280,7 +316,12 @@ const Dashboard = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-500">
+            <div
+              className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-500 cursor-zoom-in"
+              onClick={() => openChart("startEnd")}
+              role="button"
+              tabIndex={0}
+            >
               <h2 className="text-xl font-bold text-white mb-4">Start & End Times</h2>
               <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={chartData}>
@@ -315,9 +356,15 @@ const Dashboard = () => {
                   />
                 </LineChart>
               </ResponsiveContainer>
+              <p className="text-xs text-gray-400 mt-2">Click to expand</p>
             </div>
 
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-500">
+            <div
+              className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-500 cursor-zoom-in"
+              onClick={() => openChart("durationTrend")}
+              role="button"
+              tabIndex={0}
+            >
               <h2 className="text-xl font-bold text-white mb-4">Duration Trend</h2>
               <ResponsiveContainer width="100%" height={250}>
                 <AreaChart data={chartData}>
@@ -348,9 +395,15 @@ const Dashboard = () => {
                   </defs>
                 </AreaChart>
               </ResponsiveContainer>
+              <p className="text-xs text-gray-400 mt-2">Click to expand</p>
             </div>
 
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-500">
+            <div
+              className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-500 cursor-zoom-in"
+              onClick={() => openChart("durationBars")}
+              role="button"
+              tabIndex={0}
+            >
               <h2 className="text-xl font-bold text-white mb-4">Duration Bars</h2>
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={chartData}>
@@ -369,9 +422,15 @@ const Dashboard = () => {
                   <Bar dataKey="durationHours" fill="#8B5CF6" name="Duration (hrs)" radius={[8, 8, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
+              <p className="text-xs text-gray-400 mt-2">Click to expand</p>
             </div>
 
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-500">
+            <div
+              className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-500 cursor-zoom-in"
+              onClick={() => openChart("durationLine")}
+              role="button"
+              tabIndex={0}
+            >
               <h2 className="text-xl font-bold text-white mb-4">Duration Line</h2>
               <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={chartData}>
@@ -397,6 +456,7 @@ const Dashboard = () => {
                   />
                 </LineChart>
               </ResponsiveContainer>
+              <p className="text-xs text-gray-400 mt-2">Click to expand</p>
             </div>
           </div>
         </div>
@@ -413,7 +473,176 @@ const Dashboard = () => {
           </svg>
         </a>
       </div>
-    </div>
+  </div>
+  {isModalOpen && (
+      <div
+        className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+        onClick={closeModal}
+      >
+        <div
+          className="relative w-full max-w-7xl max-h-[90vh] overflow-auto bg-gray-900 border border-white/10 rounded-2xl p-6"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <div>
+              <h3 className="text-2xl font-bold text-white">
+                {selectedChart === "startEnd" && "Start & End Times (Expanded)"}
+                {selectedChart === "durationTrend" && "Duration Trend (Expanded)"}
+                {selectedChart === "durationBars" && "Duration Bars (Expanded)"}
+                {selectedChart === "durationLine" && "Duration Line (Expanded)"}
+              </h3>
+              <p className="text-gray-400">Range: {rangeLabel}</p>
+            </div>
+            <button
+              onClick={closeModal}
+              className="shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 text-white"
+              aria-label="Close"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="h-[65vh] min-h-[400px]">
+            {selectedChart === "startEnd" && (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+                  <XAxis dataKey="date" tick={{ fill: "#9CA3AF", fontSize: 12 }} stroke="#6B7280" />
+                  <YAxis tick={{ fill: "#9CA3AF", fontSize: 12 }} stroke="#6B7280" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "rgba(17, 24, 39, 0.95)",
+                      border: "1px solid rgba(59, 130, 246, 0.3)",
+                      borderRadius: "12px",
+                      color: "#fff",
+                      backdropFilter: "blur(10px)",
+                    }}
+                  />
+                  <Legend wrapperStyle={{ color: "#fff" }} />
+                  <Line type="monotone" dataKey="startHours" stroke="#60A5FA" name="Start" strokeWidth={3} dot={false} />
+                  <Line type="monotone" dataKey="endHours" stroke="#34D399" name="End" strokeWidth={3} dot={false} />
+                  <Brush dataKey="date" height={24} stroke="#60A5FA" travellerWidth={10} />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+
+            {selectedChart === "durationTrend" && (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+                  <XAxis dataKey="date" tick={{ fill: "#9CA3AF", fontSize: 12 }} stroke="#6B7280" />
+                  <YAxis tick={{ fill: "#9CA3AF", fontSize: 12 }} stroke="#6B7280" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "rgba(17, 24, 39, 0.95)",
+                      border: "1px solid rgba(245, 158, 11, 0.3)",
+                      borderRadius: "12px",
+                      color: "#fff",
+                      backdropFilter: "blur(10px)",
+                    }}
+                  />
+                  <Area type="monotone" dataKey="durationHours" stroke="#F59E0B" fill="url(#durationGradient)" strokeWidth={3} />
+                  <defs>
+                    <linearGradient id="durationGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#F59E0B" stopOpacity={0.1} />
+                    </linearGradient>
+                  </defs>
+                  <Brush dataKey="date" height={24} stroke="#F59E0B" travellerWidth={10} />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
+
+            {selectedChart === "durationBars" && (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+                  <XAxis dataKey="date" tick={{ fill: "#9CA3AF", fontSize: 12 }} stroke="#6B7280" />
+                  <YAxis tick={{ fill: "#9CA3AF", fontSize: 12 }} stroke="#6B7280" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "rgba(17, 24, 39, 0.95)",
+                      border: "1px solid rgba(139, 92, 246, 0.3)",
+                      borderRadius: "12px",
+                      color: "#fff",
+                      backdropFilter: "blur(10px)",
+                    }}
+                  />
+                  <Bar dataKey="durationHours" fill="#8B5CF6" name="Duration (hrs)" radius={[8, 8, 0, 0]} />
+                  <Brush dataKey="date" height={24} stroke="#8B5CF6" travellerWidth={10} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+
+            {selectedChart === "durationLine" && (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+                  <XAxis dataKey="date" tick={{ fill: "#9CA3AF", fontSize: 12 }} stroke="#6B7280" />
+                  <YAxis tick={{ fill: "#9CA3AF", fontSize: 12 }} stroke="#6B7280" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "rgba(17, 24, 39, 0.95)",
+                      border: "1px solid rgba(34, 197, 94, 0.3)",
+                      borderRadius: "12px",
+                      color: "#fff",
+                      backdropFilter: "blur(10px)",
+                    }}
+                  />
+                  <Line type="linear" dataKey="durationHours" stroke="#22C55E" name="Duration (hrs)" strokeWidth={3} dot={false} />
+                  <Brush dataKey="date" height={24} stroke="#22C55E" travellerWidth={10} />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+
+          <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+            {selectedChart === "startEnd" && (
+              <>
+                <div className="bg-white/5 rounded-xl p-4 border border-white/10 text-center">
+                  <p className="text-gray-400 text-sm">Avg Start</p>
+                  <p className="text-white text-lg font-bold">{hoursToTime(avgStart ?? NaN)}</p>
+                </div>
+                <div className="bg-white/5 rounded-xl p-4 border border-white/10 text-center">
+                  <p className="text-gray-400 text-sm">Avg End</p>
+                  <p className="text-white text-lg font-bold">{hoursToTime(avgEnd ?? NaN)}</p>
+                </div>
+                <div className="bg-white/5 rounded-xl p-4 border border-white/10 text-center">
+                  <p className="text-gray-400 text-sm">Earliest Start</p>
+                  <p className="text-white text-lg font-bold">{hoursToTime(earliestStart ?? NaN)}</p>
+                </div>
+                <div className="bg-white/5 rounded-xl p-4 border border-white/10 text-center">
+                  <p className="text-gray-400 text-sm">Latest End</p>
+                  <p className="text-white text-lg font-bold">{hoursToTime(latestEnd ?? NaN)}</p>
+                </div>
+              </>
+            )}
+
+            {selectedChart !== "startEnd" && (
+              <>
+                <div className="bg-white/5 rounded-xl p-4 border border-white/10 text-center">
+                  <p className="text-gray-400 text-sm">Average Duration</p>
+                  <p className="text-white text-lg font-bold">{avgDuration}h</p>
+                </div>
+                <div className="bg-white/5 rounded-xl p-4 border border-white/10 text-center">
+                  <p className="text-gray-400 text-sm">Max Duration</p>
+                  <p className="text-white text-lg font-bold">{maxDuration}h</p>
+                </div>
+                <div className="bg-white/5 rounded-xl p-4 border border-white/10 text-center">
+                  <p className="text-gray-400 text-sm">Min Duration</p>
+                  <p className="text-white text-lg font-bold">{minDuration}h</p>
+                </div>
+                <div className="bg-white/5 rounded-xl p-4 border border-white/10 text-center">
+                  <p className="text-gray-400 text-sm">Records</p>
+                  <p className="text-white text-lg font-bold">{totalRecords}</p>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   )
 }
 
